@@ -1,6 +1,17 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
+import re
+import unicodedata
+
+def slugify(texto: str) -> str:
+    # remove acentos
+    texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("utf-8")
+    # troca espaços e caracteres não alfanuméricos por "_"
+    texto = re.sub(r"[^a-zA-Z0-9]", "_", texto)
+    # remove múltiplos "_" seguidos
+    texto = re.sub(r"_+", "_", texto).strip("_")
+    return texto
 
 
 def gerar_comprovante(nome, dados, caminho_pdf_destino):
@@ -17,9 +28,9 @@ def gerar_comprovante(nome, dados, caminho_pdf_destino):
     c.roundRect(margem + 115, 686, largura_caixa, altura_caixa, 5, stroke=True, fill=False)
 
     # ===== Logo =====
-    c.drawImage("C:\\Users\\pedro\\Downloads\\mm\\Relatorio_rep-main\\Relatorio_rep-main\\logo.jpeg", 40, altura - 110, width=65, height=60)
-    c.drawImage("C:\\Users\\pedro\\Downloads\\mm\\Relatorio_rep-main\\Relatorio_rep-main\\Inter-nova-marca-2023-1000x600.jpg", 210, altura - 250, width=180, height=140)
-    c.drawImage("C:\\Users\\pedro\\Downloads\\mm\\Relatorio_rep-main\\Relatorio_rep-main\\QR_Code_Buskar.png", 50, altura - 770, width=30, height=30)
+    c.drawImage("C:\\Users\\pedro\\OneDrive\\Documentos\\TRABALHO\\Relatorio_rep\\source\\logo.jpeg", 40, altura - 110, width=65, height=60)
+    c.drawImage("C:\\Users\\pedro\\OneDrive\\Documentos\\TRABALHO\\Relatorio_rep\\source\\Inter-nova-marca-2023-1000x600.jpg", 210, altura - 250, width=180, height=140)
+    c.drawImage("C:\\Users\\pedro\\OneDrive\\Documentos\\TRABALHO\\Relatorio_rep\\source\\QR_Code_Buskar.png", 50, altura - 770, width=30, height=30)
 
     # ===== Título =====
     c.setFont("Helvetica-Bold", 20)
@@ -100,10 +111,10 @@ dados = {
 nome = "bôrb"
 
 # Caminho para salvar o PDF
-caminho_pdf_destino = f"comprovante_{nome}.pdf"
+caminho_pdf_destino = f"comprovante_{slugify(nome)}.pdf"
 
 # Gerar o relatório
 gerar_comprovante(nome, dados, caminho_pdf_destino)
 
-print(f"Relatório gerado para: {nome}")
+print(f"Relatório gerado para: {slugify(nome)}")
 

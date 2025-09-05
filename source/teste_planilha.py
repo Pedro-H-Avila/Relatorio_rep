@@ -5,7 +5,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 from reportlab.platypus import Table, TableStyle
+import re
+import unicodedata
 import io
+
 
 from datetime import datetime
 
@@ -18,6 +21,16 @@ def moeda(v):
     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X",".")
 
 # --- Função que desenha o rodapé em todas as páginas ---
+
+def slugify(texto: str) -> str:
+    # remove acentos
+    texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("utf-8")
+    # troca espaços e caracteres não alfanuméricos por "_"
+    texto = re.sub(r"[^a-zA-Z0-9]", "_", texto)
+    # remove múltiplos "_" seguidos
+    texto = re.sub(r"_+", "_", texto).strip("_")
+    return texto
+
 def rodape_pdf(canvas, doc):
     largura, altura = landscape(letter)
 
@@ -28,7 +41,7 @@ def rodape_pdf(canvas, doc):
     # QR no rodapé (esquerda)
     try:
         canvas.drawImage(
-            "C:\\Users\\pedro\\Downloads\\mm\\Relatorio_rep-main\\Relatorio_rep-main\\QR_Code_Buskar.png",
+            "C:\\Users\\pedro\\OneDrive\\Documentos\\TRABALHO\\Relatorio_rep\\source\\QR_Code_Buskar.png",
             60, 22,
             width=36, height=36,
             preserveAspectRatio=True,
@@ -381,7 +394,7 @@ if __name__ == "__main__":
     ]
     parceiro = "Rocha_Soluções_em_Transporte_de_veículos_LTDA-Betim_MG"
 
-    nome_arquivo = f"relatorio_viagens_{parceiro}.pdf"
+    nome_arquivo = f"relatorio_viagens_{slugify(parceiro)}.pdf"
     
     soma = 0
 
@@ -391,8 +404,8 @@ if __name__ == "__main__":
         parceiro,
         42650.00,
         nome_arquivo,
-        "C:\\Users\\pedro\\Downloads\\mm\\Relatorio_rep-main\\Relatorio_rep-main\\logo.jpeg",
+        "C:\\Users\\pedro\\OneDrive\\Documentos\\TRABALHO\\Relatorio_rep\\source\\logo.jpeg",
     )
-    print(f"Relatório gerado: {nome_arquivo}")
+    print(f"Relatório gerado: {slugify(nome_arquivo)}")
 
 
