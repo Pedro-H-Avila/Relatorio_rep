@@ -1,10 +1,11 @@
 from reportlab.lib import colors
+from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 from reportlab.platypus import Table, TableStyle
-from reportlab.pdfgen import canvas
+import io
 
 from datetime import datetime
 
@@ -27,7 +28,7 @@ def rodape_pdf(canvas, doc):
     # QR no rodapé (esquerda)
     try:
         canvas.drawImage(
-            "/home/pedro/Imagens/Imagens Buskar/QR_Code_Buskar.png",
+            "C:\\Users\\pedro\\Downloads\\mm\\Relatorio_rep-main\\Relatorio_rep-main\\QR_Code_Buskar.png",
             60, 22,
             width=36, height=36,
             preserveAspectRatio=True,
@@ -43,11 +44,23 @@ def rodape_pdf(canvas, doc):
 
     canvas.setFont("Helvetica-Bold", 10)
     canvas.drawString(330, 25, "contato@buskar.me / (31) 98475-4237")
-
-    canvas.setFillColor(colors.HexColor("#1F3A54"))
+    
+    
+     
     canvas.setFont("Helvetica-Bold", 10)
-    canvas.drawString(largura - 750, 12, "www.buskar.me")
-    canvas.setFillColor(colors.black)
+    canvas.setFillColor(HexColor("#1F3A54"))  
+    link_text = 'www.buskar.me'
+    x = largura -750
+    y = 10
+    canvas.drawString(x, y, link_text)
+
+    largura_texto = canvas.stringWidth(link_text, "Helvetica-Bold", 10)
+    canvas.linkURL("https://www.buskar.me", (x, y, x + largura_texto, y + 7 ), relative=0)
+
+    # canvas.setFillColor(colors.HexColor("#1F3A54"))
+    # canvas.setFont("Helvetica-Bold", 10)
+    # canvas.drawString(largura - 750, 12, "www.buskar.me")
+    # canvas.setFillColor(colors.black)
 
 def cabecalho_pdf(canvas, doc, logo_path):
     largura, altura = landscape(letter)
@@ -68,8 +81,26 @@ def cabecalho_pdf(canvas, doc, logo_path):
     canvas.setFont("Helvetica-Bold", 18)
     canvas.setFillColor(colors.black)
     canvas.drawCentredString(largura/2 + 20, altura - 66, "RELATÓRIO DE VIAGENS")
+    
+def gerar_relatorio_viagens_memoria(saidas, data_inicio, data_fim, parceiro, valor_total, logo_path, contato):
+    buffer = io.BytesIO()  # cria um buffer em memória
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+
+    elementos = []
+    styles = getSampleStyleSheet()
+    elementos.append(Paragraph(f"Relatório de Viagens - {parceiro}", styles["Title"]))
+    elementos.append(Spacer(1, 12))
+    elementos.append(Paragraph(f"Período: {data_inicio.strftime('%d/%m/%Y')} - {data_fim.strftime('%d/%m/%Y')}", styles["Normal"]))
+    elementos.append(Paragraph(f"Valor Total: R$ {valor_total:,.2f}", styles["Normal"]))
+
+    doc.build(elementos)
+
+    buffer.seek(0)  # volta o ponteiro para o início
+    return buffer.getvalue()  # retorna os bytes do PDF
+
 
 def gerar_relatorio_viagens(saidas, periodo_ini, periodo_fim, parceiro, total, saida_pdf, logo_path):
+    
     doc = SimpleDocTemplate(
         saida_pdf,
         pagesize=landscape(letter),
@@ -348,11 +379,20 @@ if __name__ == "__main__":
         "valor": 200.0,
     },
     ]
+    parceiro = "Rocha_Soluções_em_Transporte_de_veículos_LTDA-Betim_MG"
+
+    nome_arquivo = f"relatorio_viagens_{parceiro}.pdf"
+    
+    soma = 0
+
     gerar_relatorio_viagens(
         saidas,
         datetime(2025,8,27), datetime(2025,8,27),
-        "Rocha Soluções em Transporte de veículos LTDA - Betim/MG",
+        parceiro,
         42650.00,
-        "relatorio_viagens.pdf",
-        "/home/pedro/Imagens/Imagens Buskar/logo.jpeg"
+        nome_arquivo,
+        "C:\\Users\\pedro\\Downloads\\mm\\Relatorio_rep-main\\Relatorio_rep-main\\logo.jpeg",
     )
+    print(f"Relatório gerado: {nome_arquivo}")
+
+
